@@ -21,6 +21,7 @@ docker compose up
 
 3. Create the database tables
 ```bash
+cd backend
 npm run migrate
 ```
 
@@ -31,7 +32,6 @@ npm run seed
 
 5. Start backend service 
 ```bash
-> cd backend
 > npm run dev
 ```
 
