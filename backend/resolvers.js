@@ -1,7 +1,7 @@
 const db = require("./db");
 
 // Added a small delay to simulate network latency for better testing of loading states in the frontend.
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 module.exports = {
   // Here the backend API was not returning the results correctly, it wasn't sorted by id or anything
@@ -10,7 +10,7 @@ module.exports = {
   Query: {
     tasks: async () => {
       await delay(500);
-      return await db("tasks").orderBy('id');
+      return await db("tasks").orderBy("id");
     },
   },
 
@@ -18,7 +18,9 @@ module.exports = {
     createTask: async (_, { title }) => {
       // Here the return value was not correct, it was returning an ID instead of full object.
       await delay(500);
-      const inserted = await db("tasks").insert({ title, completed: false }).returning("*");
+      const inserted = await db("tasks")
+        .insert({ title, completed: false })
+        .returning("*");
       return inserted[0];
     },
 
@@ -28,7 +30,10 @@ module.exports = {
       // There was also a bug where the value would not update correctly when changing to Done to Pending.
       // Now it works both ways, you can mark as completed and unmark as well.
       await delay(500);
-      const updatedTask = await db("tasks").where("id", id).update({ completed: completed }).returning("*");
+      const updatedTask = await db("tasks")
+        .where("id", id)
+        .update({ completed: completed })
+        .returning("*");
       return updatedTask[0];
     },
   },
