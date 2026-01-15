@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 
-export default function Home() {
+// Decided to break this up into smaller components for better readability and maintainability.
+function Tasks() {
   const [tasks, setTasks] = useState([]);
 
+  // Here there was a bug where useEffect was missing a dependency array, causing infinite re-renders.
   useEffect(() => {
     fetch("/api/graphql", {
       method: "POST",
@@ -13,7 +15,7 @@ export default function Home() {
     })
       .then((res) => res.json())
       .then((data) => setTasks(data.data.tasks));
-  });
+  }, []);
 
   const addTask = async () => {
     const title = prompt("Task?");
@@ -52,5 +54,13 @@ export default function Home() {
         </div>
       ))}
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <>
+      <Tasks />
+    </>
   );
 }
