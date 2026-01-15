@@ -11,8 +11,9 @@ module.exports = gql`
     tasks: [Task]
   }
 
+  # Added the completed field to the toggleTask mutation, as it was missing and the backend was not updating the correct value.
   type Mutation {
     createTask(title: String!): Task
-    toggleTask(id: ID!): Task
+    toggleTask(id: ID!, completed: Boolean!): Task
   }
 `;
