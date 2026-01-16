@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { fetchTasks, createTask, updateTask, Task } from "../services/index";
+import {
+  fetchTasks,
+  createTask,
+  updateTask,
+  Task,
+  FetchTasksResponse,
+} from "../services/index";
 import {
   QueryClientProvider,
   QueryClient,
@@ -14,17 +20,25 @@ function Tasks() {
   const [newTask, setNewTask] = useState("");
 
   // Add data to the database
+  // https://tanstack.com/query/latest/docs/framework/react/guides/optimistic-updates#via-the-cache
   const { isPending, mutate } = useMutation({
     mutationFn: (title: string) => createTask(title),
-    onSettled: async () => {
-      // Invalidate and refetch, wait for it to complete
-      await queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      setNewTask("");
+    onMutate: async (title: string, context) => {
+      await queryClient.cancelQueries({ queryKey: ["tasks"] });
+      context.client.setQueryData(["tasks"], (old: FetchTasksResponse) => ({
+        data: {
+          tasks: [
+            ...old.data.tasks,
+            { title, completed: false, id: "temp-id" },
+          ],
+        },
+      }));
     },
-    onError: (error) => {
-      alert(`Error updating task: ${error}`);
-      setNewTask("");
+    onError: (err, newTodo, onMutateResult, context) => {
+      context.client.invalidateQueries({ queryKey: ["tasks"] });
     },
+    onSettled: (data, error, variables, onMutateResult, context) =>
+      context.client.invalidateQueries({ queryKey: ["tasks"] }),
   });
 
   // Update data in the database
@@ -85,7 +99,6 @@ function Tasks() {
           {t.title} — {t.completed ? "Done" : "Pending"}
         </div>
       ))}
-      {isPending && <li style={{ opacity: 0.5 }}>{newTask} — Pending</li>}
     </div>
   );
 }
