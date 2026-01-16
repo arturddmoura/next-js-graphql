@@ -14,5 +14,16 @@ module.exports = {
     seeds: {
       directory: "./seeds",
     },
+    pool: {
+      min: 2,
+      max: 10,
+    },
+    debug: true,
+    log: {
+      warn: true,
+      error: true,
+      query: true,
+    },
+    acquireConnectionTimeout: 10000,
   },
 };
