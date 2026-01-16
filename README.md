@@ -43,6 +43,12 @@ npm run seed
    - Frontend: http://localhost:3000
    - GraphQL Playground: http://localhost:4000/graphql
 
+8. How to test
+```bash
+> cd frontend
+> npm run test
+```
+
 ## Project Structure
 
 ```
