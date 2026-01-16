@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   fetchTasks,
   createTask,
@@ -17,7 +16,6 @@ import {
 // Decided to break this up into smaller components for better readability and maintainability.
 function Tasks() {
   const queryClient = useQueryClient();
-  const [newTask, setNewTask] = useState("");
 
   // Add data to the database
   // https://tanstack.com/query/latest/docs/framework/react/guides/optimistic-updates#via-the-cache
@@ -34,8 +32,9 @@ function Tasks() {
         },
       }));
     },
-    onError: (err, newTodo, onMutateResult, context) => {
+    onError: (error, newTask, onMutateResult, context) => {
       context.client.invalidateQueries({ queryKey: ["tasks"] });
+      alert(`Error inserting task: ${error}`);
     },
     onSettled: (data, error, variables, onMutateResult, context) =>
       context.client.invalidateQueries({ queryKey: ["tasks"] }),
@@ -45,11 +44,31 @@ function Tasks() {
   const updateMutation = useMutation({
     mutationFn: ({ id, completed }: { id: string; completed: boolean }) =>
       updateTask(id, completed),
+    onMutate: async (
+      { id, completed }: { id: string; completed: boolean },
+      context
+    ) => {
+      await context.client.cancelQueries({ queryKey: ["tasks", id] });
+
+      const previousTask: FetchTasksResponse | undefined =
+        context.client.getQueryData(["tasks", id]);
+
+      queryClient.setQueryData(["tasks"], (old: FetchTasksResponse) => ({
+        data: {
+          tasks: old.data.tasks.map((task) =>
+            task.id === id ? { ...task, completed: completed } : task
+          ),
+        },
+      }));
+
+      return { previousTask };
+    },
     onSuccess: () => {
       // Invalidate and refetch
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
     },
     onError: (error) => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
       alert(`Error updating task: ${error}`);
     },
   });
@@ -80,7 +99,6 @@ function Tasks() {
         onClick={() => {
           const newTitle = prompt("Please input the name of your task");
           if (newTitle !== null) {
-            setNewTask(newTitle);
             mutate(newTitle);
           }
         }}
