@@ -1,3 +1,4 @@
+
 import {
   fetchTasks,
   createTask,
@@ -21,20 +22,23 @@ function Tasks() {
   // https://tanstack.com/query/latest/docs/framework/react/guides/optimistic-updates#via-the-cache
   const { isPending, mutate } = useMutation({
     mutationFn: (title: string) => createTask(title),
-    onMutate: async (title: string, context) => {
+    onMutate: async (title: string) => {
       await queryClient.cancelQueries({ queryKey: ["tasks"] });
-      context.client.setQueryData(["tasks"], (old: FetchTasksResponse) => ({
+      const previousTasks = queryClient.getQueryData(["tasks"]);
+      
+      queryClient.setQueryData(["tasks"], (old: FetchTasksResponse) => ({
         data: {
-          tasks: [
-            ...old.data.tasks,
-            { title, completed: false, id: "temp-id" },
-          ],
+          tasks: [...old.data.tasks, { title, completed: false, id: "temp-id" }],
         },
       }));
+      
+      return { previousTasks }; // For rollback on error
     },
-    onError: (error, newTask, onMutateResult, context) => {
-      context.client.invalidateQueries({ queryKey: ["tasks"] });
-      alert(`Error inserting task: ${error}`);
+    onError: (error, variables, context) => {
+      if (context?.previousTasks) {
+        queryClient.setQueryData(["tasks"], context.previousTasks);
+      }
+      alert(`Error: ${error}`);
     },
     onSettled: (data, error, variables, onMutateResult, context) =>
       context.client.invalidateQueries({ queryKey: ["tasks"] }),
