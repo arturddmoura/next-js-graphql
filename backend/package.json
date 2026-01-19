@@ -7,7 +7,10 @@
     "start": "node server.js",
     "migrate": "knex migrate:latest",
     "seed": "knex seed:run",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "dependencies": {
     "apollo-server-express": "^3.13.0",
@@ -15,5 +18,16 @@
     "graphql": "^16.8.1",
     "knex": "^3.1.0",
     "pg": "^8.11.3"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "coveragePathIgnorePatterns": [
+      "/node_modules/",
+      "/migrations/",
+      "/seeds/"
+    ]
   }
 }
